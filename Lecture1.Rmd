@@ -1,0 +1,87 @@
+---
+title: "DSC 212 Lecture 1"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+header-includes: \usepackage{placeins}
+---
+
+```{r, setup}
+#knitr::opts_knit$set(root.dir = '~/Documents/UCSD/DSC212/')
+```
+
+
+# Simulating probabilities in R. 
+### Practing something we know. 
+What are the odds of rolling a 6 with a fair die? In theory, we know this is 1/6 = 0.1666666. But how can we show it with simulations?
+```{r, sim1}
+set <- 1:6 #possible outcomes of the experiment
+outcome <- sample(x = set, size = 1) #1 experiment, sample() draws 1 (size argument) value from the set at random
+n_experiments <- 50
+s <- sapply(1:n_experiments, function(y) sample(x = set, size = 1)) #the sapply function runs the code to the right for each of 1,000 experiments in the sequence from 1:n_experiments
+table(s) #numerically visualize the results
+plot_results <- table(s)/n_experiments #frequency of outcome as percentage
+barplot(plot_results, ylab = "probability", xlab = "outcome")
+abline(h = 1/6, col = "red")
+paste0("We rolled a 6 ", plot_results[6]*100, "% of the time.") #proportion of times we rolled a 6
+```
+
+What if we do many more experiments? We should approach the value of 0.166666...
+```{r, sim2}
+n_experiments <- 10000
+s <- sapply(1:n_experiments, function(y) sample(x = set, size = 1))
+table(s) #numerically visualize the results
+plot_results <- table(s)/n_experiments #frequency of outcome as percentage
+barplot(plot_results, ylab = "probability", xlab = "outcome")
+abline(h = 1/6, col = "red")
+paste0("We rolled a 6 ", plot_results[6]*100, "% of the time.") #proportion of times we rolled a 6
+```
+
+### Let's build on top of this: Dice Game #1.
+What are the odds of rolling at least 1 six in 4 die rolls?
+
+Originally, in 1674, the gambler de Mere thought that the probability would be (1/6) x 4 = 2/3. 
+But we can quickly see that this reasoning is flawed. What then would be the odds of rolling at least 1 six in 6 die rolls? By this logic, (1/6) x 6 = 1. Well that doesn't make sense! Just because I roll a die 6 times, it doesn't mean that I am guaranteed a 6. 
+
+Let's simulate it! 
+```{r, sim3}
+event <- sample(x = set, size = 4, replace = T) #1 experiment: 4 die rolls
+s <- sapply(1:n_experiments, function(y) sample(x = set, size = 4, replace = T)) #many experiments
+dim(s) #4 x n_experiments
+true_false <- sapply(1:n_experiments, function(x) 6 %in% s[,x]) #did we roll at least one six in experiment 1, in experiment 2, in experiment 3, and so ? 
+res <- length(which(true_false))/n_experiments 
+paste0("We rolled at least one 6 during four rolls of a die ", res*100, "% of the time.")
+```
+
+Does this match your answer to the first Mentimeter question? 
+
+### Let's build on top of this: Dice Game #2.
+What are the odds of rolling double sixes at least once in 24 fair rolls of a pair of dice? 
+```{r, sim4}
+event <- sapply(1:24, function(y) sample(x = set, size = 2, replace = T)) #1 experiment
+dim(event) #2 x 24 
+pairs_of_6 <- length(which(event[1,] == 6 & event[2,] == 6)) #1 (success, we got a double 6)
+ifelse(pairs_of_6 > 0, paste0("We rolled a double 6 at least once!"), paste0("We did not roll double 6s."))
+```
+Rerun this cell a couple times to see how often the answer changes. 
+
+Now let's code up many, many simulations.
+```{r, sim5}
+success_count <- 0
+for (i in 1:n_experiments){
+  event <- sapply(1:24, function(y) sample(x = set, size = 2, replace = T))
+  pairs_of_6 <- length(which(event[1,] == 6 & event[2,] == 6))
+  if(pairs_of_6 > 0){
+    success_count <- success_count + 1
+  }
+}
+prop_success <- success_count/n_experiments 
+paste0("We rolled a pair of sixes ", prop_success*100, "% of the time.")
+```
+
+Does this match your answer to the second Mentimeter question? 
+
+
+
